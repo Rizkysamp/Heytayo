@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Profit EL - Management System</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+        .nav-active { color: #3b82f6; border-top: 3px solid #3b82f6; }
+        ::-webkit-scrollbar { width: 0px; }
+        
+        /* Modal Style */
+        #sellModal { display: none; }
+        #sellModal.active { display: flex; }
+    </style>
+</head>
+<body class="bg-[#0f172a] text-gray-100 font-sans pb-28">
+
+    <div class="p-6 pt-10 flex justify-between items-end">
+        <div>
+            <h2 class="text-gray-400 text-xs font-medium uppercase tracking-widest">Dashboard Bisnis</h2>
+            <h1 class="text-3xl font-bold text-white">JB AKUN<span class="text-blue-500">.</span></h1>
+        </div>
+        <div class="text-right text-[10px] text-gray-500 font-mono">
+            <p id="liveClock"></p>
+        </div>
+    </div>
+
+    <div id="sellModal" class="fixed inset-0 z-[100] bg-black/80 backdrop-blur-sm items-center justify-center p-6">
+        <div class="bg-[#1e293b] w-full max-w-sm rounded-[2.5rem] border border-gray-700 p-8 shadow-2xl scale-100">
+            <h3 class="text-xl font-black text-white mb-2">Konfirmasi Terjual</h3>
+            <p id="modalItemName" class="text-blue-400 text-xs font-bold uppercase tracking-widest mb-6 italic"></p>
+            
+            <div class="space-y-4">
+                <div class="space-y-2">
+                    <label class="text-[10px] font-bold text-gray-500 ml-2 uppercase">Harga Terjual (Rp)</label>
+                    <input type="number" id="inputHargaJual" class="w-full px-6 py-4 bg-[#0f172a] border border-gray-700 rounded-2xl outline-none focus:border-green-500 font-bold text-green-400 text-lg" placeholder="0">
+                </div>
+                
+                <div class="grid grid-cols-2 gap-3 pt-4">
+                    <button onclick="closeModal()" class="py-4 rounded-2xl bg-gray-800 text-gray-400 font-bold text-xs uppercase tracking-widest">Batal</button>
+                    <button id="confirmSellBtn" class="py-4 rounded-2xl bg-green-600 text-white font-black text-xs uppercase tracking-widest shadow-lg shadow-green-900/40">Selesaikan</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="px-6 space-y-6">
+        <div id="home" class="tab-content active space-y-6">
+            <div class="bg-gradient-to-br from-blue-600 to-indigo-800 p-7 rounded-[2rem] shadow-2xl relative overflow-hidden text-center">
+                <p class="text-blue-200 text-xs font-bold uppercase tracking-tighter">Total Net Profit</p>
+                <h2 id="homeTotalProfit" class="text-4xl font-black mt-1 text-white">Rp 0</h2>
+                <i class="fas fa-wallet absolute -right-4 -bottom-4 text-8xl text-white/10"></i>
+            </div>
+            <div class="bg-[#1e293b] p-5 rounded-[2rem] border border-gray-800 shadow-lg">
+                <div class="h-[220px]"><canvas id="mountainChart"></canvas></div>
+            </div>
+        </div>
+
+        <div id="input" class="tab-content space-y-6">
+            <div class="bg-[#1e293b] p-8 rounded-[2rem] border border-gray-800">
+                <h2 class="text-xl font-bold mb-8 text-blue-400">Input Stok Baru</h2>
+                <form id="stockForm" class="space-y-5">
+                    <input type="text" id="nama" class="w-full px-6 py-4 bg-[#0f172a] border border-gray-700 rounded-2xl outline-none focus:border-blue-500 font-bold text-sm" placeholder="Nama Produk" required>
+                    <select id="loginType" class="w-full px-6 py-4 bg-[#0f172a] border border-gray-700 rounded-2xl outline-none font-bold text-sm">
+                        <option value="-">Tanpa Login</option>
+                        <option value="Google">Google / Gmail</option>
+                        <option value="FB">Facebook</option>
+                        <option value="VK">VK Account</option>
+                    </select>
+                    <input type="number" id="beli" class="w-full px-6 py-4 bg-[#0f172a] border border-gray-700 rounded-2xl outline-none font-bold text-yellow-500 text-sm" placeholder="Harga Modal (Beli)" required>
+                    <button type="submit" class="w-full bg-blue-600 text-white font-black py-5 rounded-2xl uppercase text-xs tracking-widest shadow-xl shadow-blue-900/40">SIMPAN KE GUDANG</button>
+                </form>
+            </div>
+        </div>
+
+        <div id="stok" class="tab-content space-y-6">
+            <div class="flex justify-between items-center px-2">
+                <h2 class="text-xl font-bold text-white uppercase tracking-tighter">Ready Stock</h2>
+                <span id="countStok" class="bg-blue-500/10 text-blue-500 text-[10px] px-3 py-1 rounded-full font-bold uppercase">0 Items</span>
+            </div>
+            <div id="stokContainer" class="space-y-4"></div>
+        </div>
+
+        <div id="rekap" class="tab-content space-y-6">
+            <div class="bg-[#1e293b] rounded-[2rem] border border-gray-800 overflow-hidden shadow-xl">
+                <div class="p-6 border-b border-gray-800 flex justify-between items-center bg-[#1e293b]/50">
+                    <h2 class="text-lg font-bold">History Log</h2>
+                    <button onclick="resetData()" class="text-red-500 text-[10px] font-black uppercase">Clear</button>
+                </div>
+                <div id="rekapContainer" class="divide-y divide-gray-800/50 max-h-[500px] overflow-y-auto"></div>
+            </div>
+        </div>
+    </div>
+
+    <nav class="fixed bottom-6 left-6 right-6 bg-[#1e293b]/95 backdrop-blur-xl border border-gray-700/50 rounded-3xl flex justify-around items-center py-4 z-50 shadow-2xl">
+        <button onclick="switchTab('home')" id="btn-home" class="flex flex-col items-center nav-active"><i class="fas fa-th-large text-xl"></i><span class="text-[9px] mt-1 font-black">HOME</span></button>
+        <button onclick="switchTab('input')" id="btn-input" class="flex flex-col items-center text-gray-500"><i class="fas fa-plus-circle text-xl"></i><span class="text-[9px] mt-1 font-black">BELI</span></button>
+        <button onclick="switchTab('stok')" id="btn-stok" class="flex flex-col items-center text-gray-500"><i class="fas fa-box-open text-xl"></i><span class="text-[9px] mt-1 font-black">STOK</span></button>
+        <button onclick="switchTab('rekap')" id="btn-rekap" class="flex flex-col items-center text-gray-500"><i class="fas fa-history text-xl"></i><span class="text-[9px] mt-1 font-black">REKAP</span></button>
+    </nav>
+
+    <script>
+        let db = JSON.parse(localStorage.getItem('profitEL_V3')) || [];
+        const ctx = document.getElementById('mountainChart').getContext('2d');
+        let chart, currentSellIndex = null;
+
+        setInterval(() => {
+            const now = new Date();
+            document.getElementById('liveClock').innerHTML = now.toLocaleDateString('id-ID', { weekday: 'short', day: '2-digit', month: 'short' }) + ' | ' + now.toLocaleTimeString('id-ID');
+        }, 1000);
+
+        function initChart() {
+            const gradient = ctx.createLinearGradient(0, 0, 0, 220);
+            gradient.addColorStop(0, 'rgba(59, 130, 246, 0.6)');
+            gradient.addColorStop(1, 'rgba(59, 130, 246, 0)');
+            const soldData = db.filter(i => i.status === 'sold');
+            chart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: ['Start', ...soldData.map(item => item.timeOnly)],
+                    datasets: [{ data: [0, ...soldData.map(item => item.jual - item.beli)], borderColor: '#3b82f6', backgroundColor: gradient, fill: true, tension: 0.4, borderWidth: 4, pointRadius: 2 }]
+                },
+                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { x: { display: false }, y: { ticks: { color: '#64748b', font: { size: 9 } }, grid: { color: '#334155' } } } }
+            });
+        }
+
+        function switchTab(tabId) {
+            document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
+            document.getElementById(tabId).classList.add('active');
+            document.querySelectorAll('nav button').forEach(btn => btn.classList.remove('nav-active', 'text-gray-500'));
+            document.getElementById('btn-' + tabId).classList.add('nav-active');
+        }
+
+        function updateUI() {
+            const stokC = document.getElementById('stokContainer');
+            const rekapC = document.getElementById('rekapContainer');
+            stokC.innerHTML = ''; rekapC.innerHTML = '';
+            let profit = 0; let count = 0;
+
+            db.forEach((item, index) => {
+                if(item.status === 'ready') {
+                    count++;
+                    stokC.innerHTML += `
+                        <div class="bg-[#1e293b] p-6 rounded-[2rem] border border-gray-800 flex justify-between items-center shadow-lg">
+                            <div>
+                                <h4 class="font-black text-white text-sm uppercase">${item.nama}</h4>
+                                <p class="text-[9px] text-blue-500 font-bold mt-1 uppercase">${item.login}</p>
+                                <p class="text-[10px] text-gray-500 mt-2 font-bold">MODAL: Rp ${parseInt(item.beli).toLocaleString()}</p>
+                            </div>
+                            <button onclick="openSellModal(${index})" class="bg-green-600 text-white text-[10px] font-black px-5 py-3 rounded-2xl shadow-lg shadow-green-900/20 uppercase tracking-tighter transition-transform active:scale-90">JUAL</button>
+                        </div>
+                    `;
+                } else {
+                    const p = item.jual - item.beli;
+                    profit += p;
+                    rekapC.innerHTML += `
+                        <div class="p-6 flex justify-between items-center bg-[#1e293b]/30">
+                            <div>
+                                <p class="font-black text-white tracking-tight uppercase text-xs">${item.nama}</p>
+                                <p class="text-[9px] text-gray-500 mt-1">${item.dateFull} | ${item.timeOnly}</p>
+                            </div>
+                            <div class="text-right">
+                                <p class="text-[8px] text-gray-500 font-bold uppercase tracking-widest">Profit</p>
+                                <p class="font-black ${p >= 0 ? 'text-green-400' : 'text-red-400'}">Rp ${p.toLocaleString()}</p>
+                            </div>
+                        </div>
+                    `;
+                }
+            });
+            document.getElementById('homeTotalProfit').innerText = `Rp ${profit.toLocaleString()}`;
+            document.getElementById('countStok').innerText = count + " Items";
+            if(chart) {
+                const sold = db.filter(i => i.status === 'sold');
+                chart.data.labels = ['Start', ...sold.map(i => i.timeOnly)];
+                chart.data.datasets[0].data = [0, ...sold.map(i => i.jual - i.beli)];
+                chart.update();
+            }
+        }
+
+        // FUNGSI MODAL CUSTOM
+        function openSellModal(index) {
+            currentSellIndex = index;
+            document.getElementById('modalItemName').innerText = db[index].nama;
+            document.getElementById('inputHargaJual').value = '';
+            document.getElementById('sellModal').classList.add('active');
+            setTimeout(() => document.getElementById('inputHargaJual').focus(), 300);
+        }
+
+        function closeModal() {
+            document.getElementById('sellModal').classList.remove('active');
+            currentSellIndex = null;
+        }
+
+        document.getElementById('confirmSellBtn').addEventListener('click', () => {
+            const hrgJual = document.getElementById('inputHargaJual').value;
+            if (hrgJual && !isNaN(hrgJual)) {
+                const now = new Date();
+                db[currentSellIndex].jual = parseInt(hrgJual);
+                db[currentSellIndex].status = 'sold';
+                db[currentSellIndex].dateFull = now.toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' });
+                db[currentSellIndex].timeOnly = now.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
+                localStorage.setItem('profitEL_V3', JSON.stringify(db));
+                updateUI();
+                closeModal();
+                switchTab('home');
+            } else {
+                alert("Masukkan harga yang valid!");
+            }
+        });
+
+        document.getElementById('stockForm').addEventListener('submit', (e) => {
+            e.preventDefault();
+            db.push({ nama: document.getElementById('nama').value, login: document.getElementById('loginType').value, beli: document.getElementById('beli').value, status: 'ready' });
+            localStorage.setItem('profitEL_V3', JSON.stringify(db));
+            updateUI();
+            e.target.reset();
+            switchTab('stok');
+        });
+
+        function resetData() { if(confirm('Hapus history?')) { db = db.filter(i => i.status === 'ready'); localStorage.setItem('profitEL_V3', JSON.stringify(db)); updateUI(); } }
+
+        initChart();
+        updateUI();
+    </script>
+</body>
+</html>
