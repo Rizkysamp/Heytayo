@@ -70,7 +70,7 @@
                         <option value="-">Tanpa Login</option>
                         <option value="Google">Google / Gmail</option>
                         <option value="FB">Facebook</option>
-                        <option value="VK">VK Account</option>
+                        <option value="VK">Bind Mati</option>
                     </select>
                     <input type="number" id="beli" class="w-full px-6 py-4 bg-[#0f172a] border border-gray-700 rounded-2xl outline-none font-bold text-yellow-500 text-sm" placeholder="Harga Modal (Beli)" required>
                     <button type="submit" class="w-full bg-blue-600 text-white font-black py-5 rounded-2xl uppercase text-xs tracking-widest shadow-xl shadow-blue-900/40">SIMPAN KE GUDANG</button>
@@ -152,7 +152,7 @@
                                 <p class="text-[9px] text-blue-500 font-bold mt-1 uppercase">${item.login}</p>
                                 <p class="text-[10px] text-gray-500 mt-2 font-bold">MODAL: Rp ${parseInt(item.beli).toLocaleString()}</p>
                             </div>
-                            <button onclick="openSellModal(${index})" class="bg-green-600 text-white text-[10px] font-black px-5 py-3 rounded-2xl shadow-lg shadow-green-900/20 uppercase tracking-tighter transition-transform active:scale-90">JUAL</button>
+                            <button onclick="openSellModal(${index})" class="bg-green-600 text-white text-[10px] font-black px-5 py-3 rounded-2xl shadow-lg shadow-green-900/20 uppercase tracking-tighter transition-transform active:scale-90">TERJUAL</button>
                         </div>
                     `;
                 } else {
